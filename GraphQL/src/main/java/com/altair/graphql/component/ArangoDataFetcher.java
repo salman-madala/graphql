@@ -4,6 +4,7 @@ import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.springframework.core.ArangoOperations;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 
@@ -29,7 +30,9 @@ public class ArangoDataFetcher<T> implements DataFetcher<T> {
 
         if (fieldName.equals("traverseGraph")) {
             return (T) traverseGraph(environment);
-        } else {
+        }else if (fieldName.equals("search")) {
+            return (T) search(environment);
+        }else {
             String documentKey = environment.getArgument("id");
             String type = environment.getArgument("type");
             if (documentKey != null) {
@@ -69,6 +72,42 @@ public class ArangoDataFetcher<T> implements DataFetcher<T> {
                 results.add(cursor.next());
             }
             return (T) results;
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    private T search(DataFetchingEnvironment environment) {
+        try {
+            String collectionName = environment.getArgument("collectionName");
+            String searchVal = environment.getArgument("searchVal");
+            String searchProperty = environment.getArgument("searchProperty");
+            Integer offset = environment.getArgument("offset");
+            Integer count = environment.getArgument("count");
+            String operator = environment.getArgument("operator");
+            if(searchProperty.equals("__fullText")){
+                searchVal = "%"+searchVal.toLowerCase()+"%";
+            }
+            Map<String, Object> bindVars = new HashMap<>();
+            bindVars.put("@collectionName", collectionName);
+            bindVars.put("attr0", searchProperty);
+            bindVars.put("param0", searchVal);
+            bindVars.put("offset", offset);
+            bindVars.put("count", count);
+
+            String query = "FOR x IN @@collectionName LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true) FILTER x.@attr0 "+operator+" @param0 LIMIT @offset, @count RETURN KEEP(x, att)";
+            if(operator.toLowerCase().contains("ilike")){
+                query = "FOR x IN @@collectionName  LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true)  FILTER LOWER(x.@attr0) LIKE LOWER(@param0)  LIMIT @offset, @count RETURN KEEP(x, att)";
+            }
+            ArangoCursor<Map> cursor = arangoDatabase.query(query, Map.class, bindVars, null);
+            List<Map<String, Object>> results = new ArrayList<>();
+            while (cursor.hasNext()) {
+                results.add(cursor.next());
+            }
+            Map<String, Object> result = new HashMap<>();
+            result.put("allResults",results);
+            return (T) result;
         } catch (Exception e) {
             System.out.println(e);
         }

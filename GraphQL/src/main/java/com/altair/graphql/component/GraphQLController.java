@@ -19,10 +19,15 @@ public class GraphQLController {
 
 
     @PostMapping("/execute")
-    public Map<String, Object> execute(@RequestBody Map<String, String> request) throws ClassNotFoundException {
-        String query = (String) request.get("query");
-        GraphQL graphQL = graphQLSchemaConfig.graphQL();
-        return graphQL.execute(query).getData();
+    public Map<String, Object> execute(@RequestBody Map<String, String> request) {
+        try {
+            String query = (String) request.get("query");
+            GraphQL graphQL = graphQLSchemaConfig.graphQL();
+            return graphQL.execute(query).getData();
+        }catch (Exception e){
+            System.out.println(e);
+            return (Map<String, Object>) e;
+        }
     }
 
 

@@ -17,12 +17,16 @@ type Response {
     edge: JSON
     path: JSON
 }
+type Res{
+    allResults:JSON
+}
 
 type Query {
     getVertex(id: ID!,type:String): Vertex
     getVertices(type:String): [Vertex]
     getEdges(type:String): [Edge]
     traverseGraph(startId: String!, depth: String!,graphName:String!,direction: String!): [Response]
+    search(collectionName: String!, searchVal: String!,searchProperty:String!,operator:String!,offset:Int!,count:Int!): Res
 }
 
 type Mutation {
