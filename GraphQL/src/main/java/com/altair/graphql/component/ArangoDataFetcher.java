@@ -80,26 +80,36 @@ public class ArangoDataFetcher<T> implements DataFetcher<T> {
 
     private T search(DataFetchingEnvironment environment) {
         try {
+
+
+            String analyzer = environment.getArgument("analyzer");
             String collectionName = environment.getArgument("collectionName");
             String searchVal = environment.getArgument("searchVal");
             String searchProperty = environment.getArgument("searchProperty");
             Integer offset = environment.getArgument("offset");
             Integer count = environment.getArgument("count");
             String operator = environment.getArgument("operator");
-            if(searchProperty.equals("__fullText")){
-                searchVal = "%"+searchVal.toLowerCase()+"%";
-            }
+            String query = "";
             Map<String, Object> bindVars = new HashMap<>();
             bindVars.put("@collectionName", collectionName);
-            bindVars.put("attr0", searchProperty);
             bindVars.put("param0", searchVal);
-            bindVars.put("offset", offset);
-            bindVars.put("count", count);
+            bindVars.put("attr0", searchProperty);
+            if(analyzer == null){
+                if(searchProperty.equals("__fullText")){
+                    searchVal = "%"+searchVal.toLowerCase()+"%";
+                }
 
-            String query = "FOR x IN @@collectionName LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true) FILTER x.@attr0 "+operator+" @param0 LIMIT @offset, @count RETURN KEEP(x, att)";
-            if(operator.toLowerCase().contains("ilike")){
-                query = "FOR x IN @@collectionName  LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true)  FILTER LOWER(x.@attr0) LIKE LOWER(@param0)  LIMIT @offset, @count RETURN KEEP(x, att)";
+                bindVars.put("offset", offset);
+                bindVars.put("count", count);
+                query = "FOR x IN @@collectionName LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true) FILTER x.@attr0 "+operator+" @param0 SORT x.@attr0 LIMIT @offset, @count RETURN KEEP(x, att)";
+                if(operator.toLowerCase().contains("ilike")){
+                    query = "FOR x IN @@collectionName  LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true)  FILTER LOWER(x.@attr0) LIKE LOWER(@param0) SORT x.@attr0 ASC LIMIT @offset, @count RETURN KEEP(x, att)";
+                }
+            }else{
+                bindVars.put("analyzer", analyzer);
+                query = "FOR x IN @@collectionName SEARCH ANALYZER(PHRASE(x.@attr0, LOWER(@param0)), @analyzer) RETURN x";
             }
+
             ArangoCursor<Map> cursor = arangoDatabase.query(query, Map.class, bindVars, null);
             List<Map<String, Object>> results = new ArrayList<>();
             while (cursor.hasNext()) {

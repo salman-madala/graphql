@@ -26,7 +26,7 @@ type Query {
     getVertices(type:String): [Vertex]
     getEdges(type:String): [Edge]
     traverseGraph(startId: String!, depth: String!,graphName:String!,direction: String!): [Response]
-    search(collectionName: String!, searchVal: String!,searchProperty:String!,operator:String!,offset:Int!,count:Int!): Res
+    search(collectionName: String!, searchVal: String!,searchProperty:String!,operator:String!,offset:Int!,count:Int!,analyzer:String): Res
 }
 
 type Mutation {
@@ -47,3 +47,4 @@ type Mutation {
 
 
 # "query": "mutation { createVertex(id: \"4\", type: \"users\", vertexData: { system: { collectionName: \"User\", contentType: \"altair.system.User\", aclId: \"66f10b9f68923862204ef371\", hash: \"7d6394c0828e17a0f0e84099dfa0562bb7949213\", createdUser: \"ADMINISTRATOR\", modifiedUser: \"ADMINISTRATOR\", createdTime: 1727073183452, modifiedTime: 1727342814087 }, userName: \"smadala\", fullName: \"Salman Madala\", provider: \"aone\", externalId: \"smadala\", metadata: { id: 3166, company_id: 1, company_name: \"Altair\", category: \"Commercial\", customer_category: \"\", full_name: \"Salman Madala\", user_role: \"user\", system_role: \"user\", subject: \"smadala@asiapac.altair.com\", username: \"smadala\", email_id: \"smadala@asiapac.altair.com\", license_token: \"\", mdh_id: 253497, customer_id: 126018, first_name: \"Salman\", last_name: \"Madala\", is_cloud_admin: false, created_date: 1727073183421, updated_date: 1727073183421 }, lastSync: 1727342814086 }) { _id vertexData} }"
+# "query": "query search { search(collectionName: \"search_default_data\",searchVal:\"RMCF0603JT10K0\",searchProperty: \"name\",operator:\"iLIKE\",offset:0,count:20) { allResults  } }"
