@@ -41,22 +41,24 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     }
 
     private T create(DataFetchingEnvironment environment) {
+        String fieldName = environment.getFieldDefinition().getName();
         try {
-            BaseDocument vertex = new BaseDocument();
+
             String id = environment.getArgument("id");
             String type = environment.getArgument("type");
-            if (id != null && type != null) {
-                Map<String, Object> vertexData = environment.getArgument("vertexData");
+            if (fieldName.contains("node")) {
+                BaseDocument node = new BaseDocument();
+                Map<String, Object> nodeData = environment.getArgument("nodeData");
                 if (!arangoDatabase.collection(type).exists()) {
                     arangoDatabase.createCollection(type);
                 }
-                vertex.addAttribute("vertexData", vertexData);
-                DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(vertex);
+                node.addAttribute("nodeData", nodeData);
+                DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
 
                 Map<String, Object> result = new HashMap<>();
                 result.put("_id", response.getKey());
                 result.put("type", type);
-                result.put("vertexData", vertexData);
+                result.put("nodeData", nodeData);
 
                 return (T) result;
             } else {

@@ -1,9 +1,9 @@
 scalar JSON
 
-type Vertex {
+type Node {
     _id: ID!
     type: String
-    vertexData:JSON
+    nodeData:JSON
 }
 
 type Edge {
@@ -17,31 +17,31 @@ type Response {
     edge: JSON
     path: JSON
 }
-type Res{
+type Res {
     allResults:JSON
 }
 
 type Query {
-    getVertex(id: ID!,type:String): Vertex
-    getVertices(type:String): [Vertex]
+    getNode(id: ID!,type:String): Node
+    getNodes(type:String): [Node]
     getEdges(type:String): [Edge]
     traverseGraph(startId: String!, depth: String!,graphName:String!,direction: String!): [Response]
     search(collectionName: String!, searchVal: String!,searchProperty:String!,operator:String!,offset:Int!,count:Int!,analyzer:String): Res
 }
 
 type Mutation {
-    createVertex(id: ID!,type:String,vertexData:JSON): Vertex
+    createNode(type:String,nodeData:JSON): Node
     createEdge(from: String!, to: String!, label: String!): Edge
-    createGraph(graphName:String!,edgeDefinition:String!,fromCollections:String!,toCollections:String):Vertex
+    createGraph(graphName:String!,edgeDefinition:String!,fromCollections:String!,toCollections:String!):Node
 }
 
-#  "query": "query GetVertex { getVertex(id: \"1619345\", type: \"books\") { _id  vertexData} }"
-#  "query": "query GetVertices { getVertices(type: \"books\") { _id  } }"
+#  "query": "query GetVertex { getNode(id: \"1619345\", type: \"books\") { _id  vertexData} }"
+#  "query": "query GetVertices { getNodes(type: \"books\") { _id  } }"
 #  "query": "query { getEdges(type: \"purchase_edges\") { _from _to  } }"
 # "query": "query { traverseGraph(startId: \"users/1621763\", depth: \"2\",graphName:\"test\", direction: \"OUTBOUND\" ) { _id } }"
 
 
-#  "query": "mutation { createVertex(id: \"10\", type: \"books\", vertexData: { name: \"nodejs\", price: \"5000\" }) { _id vertexData} }"
+#  "query": "mutation { createNode(type: \"books\", nodeData: { name: \"nodejs\", price: \"5000\" }) { _id vertexData} }"
 #  "query": "mutation { createEdge(from: \"users/1621763\", to: \"books/1632770\", label:\"purchase\") { _from _to } }"
 #  "query": "mutation { createGraph(graphName: \"test\", edgeDefinition: \"purchase_edges\", fromCollections:\"users\",toCollections:\"books\") { _id } }"
 
