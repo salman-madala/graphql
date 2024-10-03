@@ -93,7 +93,7 @@ public class ArangoDataFetcher<T> implements DataFetcher<T> {
             Map<String, Object> bindVars = new HashMap<>();
             bindVars.put("@collectionName", collectionName);
             bindVars.put("param0", searchVal);
-            bindVars.put("attr0", searchProperty);
+            bindVars.put("attr0", searchProperty.split("\\."));
             if(analyzer == null){
                 if(searchProperty.equals("__fullText")){
                     searchVal = "%"+searchVal.toLowerCase()+"%";
@@ -101,9 +101,9 @@ public class ArangoDataFetcher<T> implements DataFetcher<T> {
 
                 bindVars.put("offset", offset);
                 bindVars.put("count", count);
-                query = "FOR x IN @@collectionName LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true) FILTER x.@attr0 "+operator+" @param0 SORT x.@attr0 LIMIT @offset, @count RETURN KEEP(x, att)";
+                query = "FOR x IN @@collectionName LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true) FILTER x.@attr0 "+operator+" @param0 LIMIT @offset, @count RETURN KEEP(x, att)";
                 if(operator.toLowerCase().contains("ilike")){
-                    query = "FOR x IN @@collectionName  LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true)  FILTER LOWER(x.@attr0) LIKE LOWER(@param0) SORT x.@attr0 ASC LIMIT @offset, @count RETURN KEEP(x, att)";
+                    query = "FOR x IN @@collectionName  LET att = APPEND(SLICE(ATTRIBUTES(x), 0, 25), \"_key\", true)  FILTER LOWER(x.@attr0) LIKE LOWER(@param0) LIMIT @offset, @count RETURN KEEP(x, att)";
                 }
             }else{
                 bindVars.put("analyzer", analyzer);
