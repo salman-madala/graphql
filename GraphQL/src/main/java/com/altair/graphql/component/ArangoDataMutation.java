@@ -46,7 +46,7 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
 
             String id = environment.getArgument("id");
             String type = environment.getArgument("type");
-            if (fieldName.contains("node")) {
+            if (fieldName.toLowerCase().contains("node")) {
                 BaseDocument node = new BaseDocument();
                 Map<String, Object> nodeData = environment.getArgument("nodeData");
                 if (!arangoDatabase.collection(type).exists()) {
