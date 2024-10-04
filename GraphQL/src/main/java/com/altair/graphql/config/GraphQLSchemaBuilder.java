@@ -2,6 +2,7 @@ package com.altair.graphql.config;
 
 import com.altair.graphql.component.ArangoDataFetcher;
 import com.altair.graphql.component.ArangoDataMutation;
+import com.altair.graphql.component.GraphQLValidator;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.arangodb.springframework.core.template.ArangoTemplate;
@@ -12,14 +13,13 @@ import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeName;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -32,6 +32,9 @@ public class GraphQLSchemaBuilder {
     private final ArangoTemplate arangoTemplate;
     @Autowired
     private ArangoOperations arangoOperations;
+    @Autowired
+    @Lazy
+    private GraphQLValidator graphQLValidator;
 
     public GraphQLSchemaBuilder() throws Exception {
         this.arangoDatabase = arangoConfig.arangoDatabase();
@@ -80,7 +83,7 @@ public class GraphQLSchemaBuilder {
                             String collectionName = extractCollectionName(fieldDefinition);
 
                             // Automatically bind an ArangoDB data fetcher for each field
-                            DataFetcher<?> dataFetcher = new ArangoDataMutation<>(arangoDatabase, collectionName);
+                            DataFetcher<?> dataFetcher = new ArangoDataMutation<>(arangoDatabase, collectionName,graphQLValidator);
 //                            DataFetcher<?> dataFetcher = new GenericArangoDataFetcher(arangoTemplate,typeClass);
                             typeWiring.dataFetcher(fieldName, dataFetcher);
                         });

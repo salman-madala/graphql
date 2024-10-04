@@ -21,6 +21,16 @@ type Res {
     allResults:JSON
 }
 
+
+type Book{
+    name:String!
+    description:String!
+    price:String!
+}
+
+
+
+
 type Query {
     getNode(id: ID!,type:String): Node
     getNodes(type:String): [Node]

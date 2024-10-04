@@ -1,30 +1,26 @@
 package com.altair.graphql.component;
 
-import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.*;
 import com.arangodb.model.CollectionCreateOptions;
 import com.arangodb.model.GraphCreateOptions;
-import com.arangodb.springframework.core.ArangoOperations;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.vertx.core.json.JsonObject;
+import org.json.JSONObject;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ArangoDataMutation<T> implements DataFetcher<T> {
 
     private final ArangoDatabase arangoDatabase;
     private final String collectionName;
-
-    public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName) {
+    private final GraphQLValidator graphQLValidator;
+    public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName,GraphQLValidator graphQLValidator) {
         this.arangoDatabase = arangoDatabase;
         this.collectionName = collectionName;
+        this.graphQLValidator = graphQLValidator;
     }
 
     @Override
@@ -43,8 +39,6 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     private T create(DataFetchingEnvironment environment) {
         String fieldName = environment.getFieldDefinition().getName();
         try {
-
-            String id = environment.getArgument("id");
             String type = environment.getArgument("type");
             if (fieldName.toLowerCase().contains("node")) {
                 BaseDocument node = new BaseDocument();
@@ -53,14 +47,22 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
                     arangoDatabase.createCollection(type);
                 }
                 node.addAttribute("nodeData", nodeData);
-                DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
 
-                Map<String, Object> result = new HashMap<>();
-                result.put("_id", response.getKey());
-                result.put("type", type);
-                result.put("nodeData", nodeData);
+                Boolean isValid = graphQLValidator.validateNodeData(type, nodeData);
+                System.out.println(isValid);
 
-                return (T) result;
+                if(isValid) {
+                    DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
+
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("_id", response.getKey());
+                    result.put("type", type);
+                    result.put("nodeData", nodeData);
+
+                    return (T) result;
+                }else{
+                    return null;
+                }
             } else {
                 BaseDocument edge = new BaseDocument();
                 String from = environment.getArgument("from");

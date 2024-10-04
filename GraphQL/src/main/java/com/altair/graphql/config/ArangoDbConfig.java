@@ -11,7 +11,7 @@ public class ArangoDbConfig implements ArangoConfiguration {
 
 
     public ArangoDatabase arangoDatabase(){
-        return arango().build().db("aone");
+        return arango().build().db("mydb");
     }
 
     @Override
