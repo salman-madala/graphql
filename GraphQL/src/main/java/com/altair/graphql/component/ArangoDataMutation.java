@@ -47,7 +47,6 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
                     arangoDatabase.createCollection(type);
                 }
                 node.addAttribute("nodeData", nodeData);
-
                 Boolean isValid = graphQLValidator.validateNodeData(type, nodeData);
                 System.out.println(isValid);
 
@@ -61,7 +60,7 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
 
                     return (T) result;
                 }else{
-                    return null;
+                    throw new IllegalArgumentException("Invalid nodeData for type: " + type);
                 }
             } else {
                 BaseDocument edge = new BaseDocument();

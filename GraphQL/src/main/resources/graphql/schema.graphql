@@ -1,0 +1,17 @@
+type Book{
+    name:String!
+    description:String!
+    price:String!
+    author:Author
+}
+type Author{
+    name:String!
+    phoneNumber:Int!
+}
+
+
+
+
+type Query {
+    isRunning(test:String):String
+}
