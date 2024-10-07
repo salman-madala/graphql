@@ -9,18 +9,6 @@ type Author{
     phoneNumber:Int!
 }
 
-type Address{
-   city:String!
-   pinCode:Int
-}
-type User{
-    name:String!
-    email:String!
-    phoneNumber:Int
-    address:Address!
-}
-
-
 type Query {
     isRunning(test:String):String
 }

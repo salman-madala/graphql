@@ -26,6 +26,7 @@ public class GraphQLController {
     public ResponseEntity<Map<String, Object>> execute(@RequestBody Map<String, String> request) {
         try {
             String query = request.get("query");
+            System.out.println(query);
             GraphQL graphQL = graphQLSchemaConfig.graphQL();
             ExecutionResult executionResult = graphQL.execute(query);
             Map<String, Object> response = executionResult.getData();

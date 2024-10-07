@@ -6,7 +6,6 @@ import com.arangodb.model.CollectionCreateOptions;
 import com.arangodb.model.GraphCreateOptions;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import org.json.JSONObject;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +16,7 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     private final ArangoDatabase arangoDatabase;
     private final String collectionName;
     private final GraphQLValidator graphQLValidator;
+
     public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName,GraphQLValidator graphQLValidator) {
         this.arangoDatabase = arangoDatabase;
         this.collectionName = collectionName;
@@ -39,18 +39,25 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     private T create(DataFetchingEnvironment environment) {
         String fieldName = environment.getFieldDefinition().getName();
         try {
-            String type = environment.getArgument("type");
+
+            Map<String, Object> input = environment.getArgument("input");
+            String type = (String) input.get("type");
+
+            String query = environment.getDocument().toString();
+
             if (fieldName.toLowerCase().contains("node")) {
                 BaseDocument node = new BaseDocument();
-                Map<String, Object> nodeData = environment.getArgument("nodeData");
-                if (!arangoDatabase.collection(type).exists()) {
-                    arangoDatabase.createCollection(type);
-                }
+                Map<String, Object> nodeData = (Map<String, Object>) input.get("nodeData");
+
                 node.addAttribute("nodeData", nodeData);
-                Boolean isValid = graphQLValidator.validateNodeData(type, nodeData);
+                String schemaFilePath = (String) input.get("schema_file");
+                Boolean isValid = graphQLValidator.validateNodeData(schemaFilePath,query);
                 System.out.println(isValid);
 
                 if(isValid) {
+                    if (!arangoDatabase.collection(type).exists()) {
+                        arangoDatabase.createCollection(type);
+                    }
                     DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
 
                     Map<String, Object> result = new HashMap<>();
