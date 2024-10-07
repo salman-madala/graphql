@@ -87,16 +87,13 @@ public class GraphQLValidator {
             // Check if the field is required (non-nullable)
             boolean isNonNull = fieldType instanceof GraphQLNonNull;
 
-            System.out.println("Validating field: " + fieldName + " | Required: " + isNonNull);
 
             // If the field is missing
             if (!nodeData.containsKey(fieldName)) {
                 if (isNonNull) {
-                    System.out.println("Validation failed: Missing required field '" + fieldName + "'");
-                    return false; // Required field is missing
+                    return false;
                 } else {
-                    System.out.println("Optional field '" + fieldName + "' is missing, skipping.");
-                    continue;  // Optional fields can be skipped
+                    continue;
                 }
             }
 
@@ -104,14 +101,12 @@ public class GraphQLValidator {
 
             // If the field is required (non-nullable) but its value is null or empty, return false
             if (isNonNull && (value == null || value.toString().trim().isEmpty())) {
-                System.out.println("Validation failed: Required field '" + fieldName + "' is empty.");
                 return false;  // Non-nullable field cannot be empty
             }
 
-            // If the field is present but is not required (nullable), we still check its value
+
             if (value == null) {
-                System.out.println("Optional field '" + fieldName + "' is null, skipping.");
-                continue; // Optional field can be null
+                continue;
             }
 
             // Check if the field is a nested object (e.g., author in Book)
@@ -119,10 +114,8 @@ public class GraphQLValidator {
                 fieldType = ((GraphQLNonNull) fieldType).getWrappedType();
             }
             if (fieldType instanceof GraphQLObjectType) {
-                System.out.println("Validating nested object: " + fieldName);
                 if (!(value instanceof Map)) {
-                    System.out.println("Validation failed: Field '" + fieldName + "' is not a valid object.");
-                    return false;  // Invalid nested object format
+                    return false;
                 }
 
                 GraphQLObjectType nestedObjectType = (GraphQLObjectType) fieldType;
@@ -132,7 +125,7 @@ public class GraphQLValidator {
             }
         }
 
-        return true;  // All fields are valid
+        return true;
     }
 
 }

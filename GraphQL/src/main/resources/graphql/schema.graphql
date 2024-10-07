@@ -2,14 +2,23 @@ type Book{
     name:String!
     description:String!
     price:String!
-    author:Author
+    author:Author!
 }
 type Author{
     name:String!
     phoneNumber:Int!
 }
 
-
+type Address{
+   city:String!
+   pinCode:Int
+}
+type User{
+    name:String!
+    email:String!
+    phoneNumber:Int
+    address:Address!
+}
 
 
 type Query {
