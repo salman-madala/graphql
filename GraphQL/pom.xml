@@ -37,7 +37,7 @@
         <dependency>
             <groupId>com.graphql-java-kickstart</groupId>
             <artifactId>graphql-spring-boot-starter</artifactId>
-            <version>14.0.0</version>
+            <version>12.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -73,6 +73,17 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20240303</version>
+        </dependency>
+        <dependency>
+            <groupId>com.graphql-java</groupId>
+            <artifactId>graphql-java</artifactId>
+            <version>22.1</version> <!-- Use the latest stable version -->
+        </dependency>
+
+        <dependency>
+            <groupId>com.graphql-java-kickstart</groupId>
+            <artifactId>graphql-java-tools</artifactId>
+            <version>12.0.0</version> <!-- Check for the latest version -->
         </dependency>
 
         <dependency>

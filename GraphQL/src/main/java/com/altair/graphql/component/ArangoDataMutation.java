@@ -1,11 +1,13 @@
 package com.altair.graphql.component;
 
+import com.altair.graphql.util.GraphQLUtil;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.*;
 import com.arangodb.model.CollectionCreateOptions;
 import com.arangodb.model.GraphCreateOptions;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLSchema;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,11 +18,13 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     private final ArangoDatabase arangoDatabase;
     private final String collectionName;
     private final GraphQLValidator graphQLValidator;
+    private final String query;
 
-    public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName,GraphQLValidator graphQLValidator) {
+    public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName, GraphQLValidator graphQLValidator, String query) {
         this.arangoDatabase = arangoDatabase;
         this.collectionName = collectionName;
         this.graphQLValidator = graphQLValidator;
+        this.query = query;
     }
 
     @Override
@@ -29,7 +33,8 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
 
         if (fieldName.contains("createGraph")) {
             return (T) createGraph(environment);
-        } if (fieldName.contains("create")) {
+        }
+        if (fieldName.contains("create")) {
             return (T) create(environment);
         } else {
             throw new UnsupportedOperationException("Unknown mutation: " + fieldName);
@@ -42,32 +47,37 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
 
             Map<String, Object> input = environment.getArgument("input");
             String type = (String) input.get("type");
-
-            String query = environment.getDocument().toString();
-
+//            System.out.println("Executed Query: " + query);
             if (fieldName.toLowerCase().contains("node")) {
                 BaseDocument node = new BaseDocument();
                 Map<String, Object> nodeData = (Map<String, Object>) input.get("nodeData");
 
                 node.addAttribute("nodeData", nodeData);
                 String schemaFilePath = (String) input.get("schema_file");
-                Boolean isValid = graphQLValidator.validateNodeData(schemaFilePath,query);
-                System.out.println(isValid);
 
-                if(isValid) {
-                    if (!arangoDatabase.collection(type).exists()) {
-                        arangoDatabase.createCollection(type);
+                GraphQLSchema schema = GraphQLUtil.loadSchema(schemaFilePath);
+                Boolean isQueryValid = GraphQLUtil.validateGraphQL(schema, type, nodeData, environment.getLocale(), query);
+                System.out.println(isQueryValid);
+                if (isQueryValid) {
+                    Boolean isJsonValid = graphQLValidator.validateNodeData(schema, type, nodeData);
+                    System.out.println(isJsonValid);
+                    if (isJsonValid) {
+                        if (!arangoDatabase.collection(type).exists()) {
+                            arangoDatabase.createCollection(type);
+                        }
+                        DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
+
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("_id", response.getKey());
+                        result.put("type", type);
+                        result.put("nodeData", nodeData);
+
+                        return (T) result;
+                    } else {
+                        throw new IllegalArgumentException("Invalid nodeData for type: " + type);
                     }
-                    DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
-
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("_id", response.getKey());
-                    result.put("type", type);
-                    result.put("nodeData", nodeData);
-
-                    return (T) result;
                 }else{
-                    throw new IllegalArgumentException("Invalid nodeData for type: " + type);
+                    throw new IllegalArgumentException("Invalid Query");
                 }
             } else {
                 BaseDocument edge = new BaseDocument();
@@ -77,10 +87,10 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
                 edge.addAttribute("_from", from);
                 edge.addAttribute("_to", to);
                 edge.addAttribute("label", label);
-                if (!arangoDatabase.collection(label+"_edges").exists()) {
-                    arangoDatabase.createCollection(label+"_edges",new CollectionCreateOptions().type(CollectionType.EDGES));
+                if (!arangoDatabase.collection(label + "_edges").exists()) {
+                    arangoDatabase.createCollection(label + "_edges", new CollectionCreateOptions().type(CollectionType.EDGES));
                 }
-                DocumentCreateEntity response = arangoDatabase.collection(label+"_edges").insertDocument(edge);
+                DocumentCreateEntity response = arangoDatabase.collection(label + "_edges").insertDocument(edge);
                 Map<String, Object> result = new HashMap<>();
                 result.put("_id", response.getId());
                 result.put("label", label);
@@ -88,7 +98,7 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
                 result.put("_to", to);
                 return (T) result;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e);
         }
         return null;

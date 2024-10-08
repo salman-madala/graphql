@@ -47,15 +47,15 @@ public class GraphQLSchemaBuilder {
         TypeDefinitionRegistry typeRegistry = schemaParser.parse(schemaFile);
         return typeRegistry;
     }
-    public GraphQL graphQL() throws ClassNotFoundException {
+    public GraphQL graphQL(String query) throws ClassNotFoundException {
         TypeDefinitionRegistry typeRegistry = typeDefinitionRegistry();
         SchemaGenerator schemaGenerator = new SchemaGenerator();
-        RuntimeWiring runtimeWiring = buildRuntimeWiring(typeRegistry);
+        RuntimeWiring runtimeWiring = buildRuntimeWiring(typeRegistry,query);
         GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeRegistry, runtimeWiring);
         return GraphQL.newGraphQL(graphQLSchema).build();
     }
 
-    private RuntimeWiring buildRuntimeWiring(TypeDefinitionRegistry typeRegistry) {
+    private RuntimeWiring buildRuntimeWiring(TypeDefinitionRegistry typeRegistry,String query) {
 
         RuntimeWiring.Builder runtimeWiringBuilder = RuntimeWiring.newRuntimeWiring().scalar(ExtendedScalars.Json);
 
@@ -83,7 +83,7 @@ public class GraphQLSchemaBuilder {
                             String collectionName = extractCollectionName(fieldDefinition);
 
                             // Automatically bind an ArangoDB data fetcher for each field
-                            DataFetcher<?> dataFetcher = new ArangoDataMutation<>(arangoDatabase, collectionName,graphQLValidator);
+                            DataFetcher<?> dataFetcher = new ArangoDataMutation<>(arangoDatabase, collectionName,graphQLValidator,query);
 //                            DataFetcher<?> dataFetcher = new GenericArangoDataFetcher(arangoTemplate,typeClass);
                             typeWiring.dataFetcher(fieldName, dataFetcher);
                         });
