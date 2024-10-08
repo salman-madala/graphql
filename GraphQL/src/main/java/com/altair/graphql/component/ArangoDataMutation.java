@@ -17,10 +17,12 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     private final ArangoDatabase arangoDatabase;
     private final String collectionName;
     private final GraphQLValidator graphQLValidator;
-    public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName,GraphQLValidator graphQLValidator) {
+    private final String query;
+    public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName, GraphQLValidator graphQLValidator, String query) {
         this.arangoDatabase = arangoDatabase;
         this.collectionName = collectionName;
         this.graphQLValidator = graphQLValidator;
+        this.query = query;
     }
 
     @Override

@@ -19,8 +19,3 @@ type User{
     phoneNumber:Int
     address:Address!
 }
-
-
-type Query {
-    isRunning(test:String):String
-}
