@@ -1,10 +1,6 @@
 package com.altair.graphql.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import graphql.ExecutionResult;
-import graphql.GraphQL;
 import graphql.language.Document;
-import graphql.language.ObjectTypeDefinition;
 import graphql.parser.Parser;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLSchema;
