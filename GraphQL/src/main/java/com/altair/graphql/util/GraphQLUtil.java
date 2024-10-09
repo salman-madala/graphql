@@ -29,7 +29,7 @@ public class GraphQLUtil {
         SchemaParser schemaParser = new SchemaParser();
         String schema = new String(Files.readAllBytes(Paths.get(schemaFilePath)));
         String gatewaySchema = new String(Files.readAllBytes(Paths.get("src/main/resources/graphql/gateway.graphqls")));
-
+        // combining the two graphqlSchemas and create graphQL Schema for the validation of query and JsonData
         TypeDefinitionRegistry typeRegistry = schemaParser.parse(schema+gatewaySchema);
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         RuntimeWiring runtimeWiring =  RuntimeWiring.newRuntimeWiring().scalar(ExtendedScalars.Json).build();
