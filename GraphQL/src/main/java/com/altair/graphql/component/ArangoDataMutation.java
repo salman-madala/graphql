@@ -41,18 +41,23 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     private T create(DataFetchingEnvironment environment) {
         String fieldName = environment.getFieldDefinition().getName();
         try {
-            String type = environment.getArgument("type");
+
             if (fieldName.toLowerCase().contains("node")) {
                 BaseDocument node = new BaseDocument();
+                Map<String, Object> input = environment.getArgument("input");
+                String type = (String) input.get("type");
                 Map<String, Object> nodeData = environment.getArgument("nodeData");
-                if (!arangoDatabase.collection(type).exists()) {
-                    arangoDatabase.createCollection(type);
-                }
-                node.addAttribute("nodeData", nodeData);
-                Boolean isValid = graphQLValidator.validateNodeData(type, nodeData);
-                System.out.println(isValid);
 
-                if(isValid) {
+                String schemaFilePath = (String) input.get("schema_file");
+
+//                Boolean isValid = graphQLValidator.validateNodeData(type, nodeData);
+//                System.out.println(isValid);
+
+                if(false) {
+                    node.addAttribute("nodeData", nodeData);
+                    if (!arangoDatabase.collection(type).exists()) {
+                        arangoDatabase.createCollection(type);
+                    }
                     DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
 
                     Map<String, Object> result = new HashMap<>();

@@ -6,6 +6,12 @@ type Node {
     nodeData:JSON
 }
 
+input NodeInput{
+    type:String!,
+    schema_file:String!
+    nodeData:JSON!
+}
+
 type Edge {
     _from: ID!
     _to: ID!
@@ -21,7 +27,6 @@ type Res {
     allResults:JSON
 }
 
-
 type Query {
     getNode(id: ID!,type:String): Node
     getNodes(type:String): [Node]
@@ -31,7 +36,7 @@ type Query {
 }
 
 type Mutation {
-    createNode(type:String,nodeData:JSON): Node
+    createNode(input:NodeInput): Node
     createEdge(from: String!, to: String!, label: String!): Edge
     createGraph(graphName:String!,edgeDefinition:String!,fromCollections:String!,toCollections:String!):Node
 }
