@@ -43,7 +43,7 @@ public class GraphQLSchemaBuilder {
 
     public TypeDefinitionRegistry typeDefinitionRegistry() throws ClassNotFoundException {
         SchemaParser schemaParser = new SchemaParser();
-        File schemaFile = new File("src/main/resources/graphql/schema.graphqls");
+        File schemaFile = new File("src/main/resources/graphql/gateway.graphqls");
         TypeDefinitionRegistry typeRegistry = schemaParser.parse(schemaFile);
         return typeRegistry;
     }
