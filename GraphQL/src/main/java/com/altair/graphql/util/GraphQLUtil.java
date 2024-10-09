@@ -28,7 +28,7 @@ public class GraphQLUtil {
     public static GraphQLSchema loadSchema(String schemaFilePath) throws IOException {
         SchemaParser schemaParser = new SchemaParser();
         String schema = new String(Files.readAllBytes(Paths.get(schemaFilePath)));
-        String gatewaySchema = new String(Files.readAllBytes(Paths.get("src/main/resources/graphql/gateway.graphql")));
+        String gatewaySchema = new String(Files.readAllBytes(Paths.get("src/main/resources/graphql/gateway.graphqls")));
 
         TypeDefinitionRegistry typeRegistry = schemaParser.parse(schema+gatewaySchema);
         SchemaGenerator schemaGenerator = new SchemaGenerator();
