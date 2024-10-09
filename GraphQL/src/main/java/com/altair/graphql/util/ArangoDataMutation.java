@@ -1,6 +1,5 @@
-package com.altair.graphql.component;
+package com.altair.graphql.util;
 
-import com.altair.graphql.util.GraphQLUtil;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.*;
 import com.arangodb.model.CollectionCreateOptions;
@@ -8,7 +7,6 @@ import com.arangodb.model.GraphCreateOptions;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLSchema;
-import org.json.JSONObject;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +18,7 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
     private final String collectionName;
     private final GraphQLValidator graphQLValidator;
     private final String query;
+
     public ArangoDataMutation(ArangoDatabase arangoDatabase, String collectionName, GraphQLValidator graphQLValidator, String query) {
         this.arangoDatabase = arangoDatabase;
         this.collectionName = collectionName;

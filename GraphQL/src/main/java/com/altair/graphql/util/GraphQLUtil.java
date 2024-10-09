@@ -15,6 +15,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.validation.ValidationError;
 import graphql.validation.Validator;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Component
 public class GraphQLUtil {
 
     public static GraphQLSchema loadSchema(String schemaFilePath) throws IOException {

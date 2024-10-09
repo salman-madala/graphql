@@ -1,8 +1,8 @@
 package com.altair.graphql.config;
 
-import com.altair.graphql.component.ArangoDataFetcher;
-import com.altair.graphql.component.ArangoDataMutation;
-import com.altair.graphql.component.GraphQLValidator;
+import com.altair.graphql.util.ArangoDataFetcher;
+import com.altair.graphql.util.ArangoDataMutation;
+import com.altair.graphql.util.GraphQLValidator;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.springframework.core.ArangoOperations;
 import com.arangodb.springframework.core.template.ArangoTemplate;
@@ -41,72 +41,62 @@ public class GraphQLSchemaBuilder {
         this.arangoTemplate = (ArangoTemplate) arangoConfig.arangoTemplate();
     }
 
-    public TypeDefinitionRegistry typeDefinitionRegistry() throws ClassNotFoundException {
-        SchemaParser schemaParser = new SchemaParser();
-        File schemaFile = new File("src/main/resources/graphql/gateway.graphqls");
-        TypeDefinitionRegistry typeRegistry = schemaParser.parse(schemaFile);
-        return typeRegistry;
-    }
-    public GraphQL graphQL(String query) throws ClassNotFoundException {
+    public GraphQL graphQL(String query) throws Exception {
         TypeDefinitionRegistry typeRegistry = typeDefinitionRegistry();
-        SchemaGenerator schemaGenerator = new SchemaGenerator();
         RuntimeWiring runtimeWiring = buildRuntimeWiring(typeRegistry,query);
-        GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeRegistry, runtimeWiring);
+        GraphQLSchema graphQLSchema = new SchemaGenerator().makeExecutableSchema(typeRegistry, runtimeWiring);
         return GraphQL.newGraphQL(graphQLSchema).build();
     }
 
+    private TypeDefinitionRegistry typeDefinitionRegistry() throws Exception {
+        SchemaParser schemaParser = new SchemaParser();
+        File schemaFile = new File("src/main/resources/graphql/gateway.graphqls");
+        return schemaParser.parse(schemaFile);
+    }
+
     private RuntimeWiring buildRuntimeWiring(TypeDefinitionRegistry typeRegistry,String query) {
+        RuntimeWiring.Builder runtimeWiringBuilder = RuntimeWiring.newRuntimeWiring()
+                .scalar(ExtendedScalars.Json);
 
-        RuntimeWiring.Builder runtimeWiringBuilder = RuntimeWiring.newRuntimeWiring().scalar(ExtendedScalars.Json);
-
-
-        // Loop through all types in the TypeDefinitionRegistry
         typeRegistry.types().forEach((typeName, typeDefinition) -> {
             if (typeDefinition instanceof ObjectTypeDefinition) {
                 ObjectTypeDefinition objectTypeDefinition = (ObjectTypeDefinition) typeDefinition;
-                if (typeDefinition.getName().equals("Query") ) {
-                    runtimeWiringBuilder.type(typeName, typeWiring -> {
-                        // For each field in the object type, create a GenericDataFetcher if no specific fetcher is provided
-                        objectTypeDefinition.getFieldDefinitions().forEach(fieldDefinition -> {
-                            String fieldName = fieldDefinition.getName();
-                            String collectionName = extractCollectionName(fieldDefinition);
-                            DataFetcher<?> dataFetcher = new ArangoDataFetcher(arangoDatabase, collectionName,arangoOperations);
-                            typeWiring.dataFetcher(fieldName, dataFetcher);
-                        });
-                        return typeWiring;
-                    });
-                } else if (typeDefinition.getName().equals("Mutation")) {
-                    runtimeWiringBuilder.type(typeName, typeWiring -> {
-                        // For each field in the object type, create a GenericDataFetcher if no specific fetcher is provided
-                        objectTypeDefinition.getFieldDefinitions().forEach(fieldDefinition -> {
-                            String fieldName = fieldDefinition.getName();
-                            String collectionName = extractCollectionName(fieldDefinition);
-
-                            // Automatically bind an ArangoDB data fetcher for each field
-                            DataFetcher<?> dataFetcher = new ArangoDataMutation<>(arangoDatabase, collectionName,graphQLValidator,query);
-//                            DataFetcher<?> dataFetcher = new GenericArangoDataFetcher(arangoTemplate,typeClass);
-                            typeWiring.dataFetcher(fieldName, dataFetcher);
-                        });
-                        return typeWiring;
-                    });
+                if ("Query".equals(typeDefinition.getName())) {
+                    buildQueryWiring(runtimeWiringBuilder, objectTypeDefinition);
+                } else if ("Mutation".equals(typeDefinition.getName())) {
+                    buildMutationWiring(runtimeWiringBuilder, objectTypeDefinition,query);
                 }
             }
         });
 
         return runtimeWiringBuilder.build();
-
     }
 
-    // Helper method to extract collection name
+    private void buildQueryWiring(RuntimeWiring.Builder runtimeWiringBuilder, ObjectTypeDefinition objectTypeDefinition) {
+        runtimeWiringBuilder.type(objectTypeDefinition.getName(), typeWiring -> {
+            objectTypeDefinition.getFieldDefinitions().forEach(fieldDefinition -> {
+                DataFetcher<?> dataFetcher = new ArangoDataFetcher<>(arangoDatabase, extractCollectionName(fieldDefinition), arangoOperations);
+                typeWiring.dataFetcher(fieldDefinition.getName(), dataFetcher);
+            });
+            return typeWiring;
+        });
+    }
+
+    private void buildMutationWiring(RuntimeWiring.Builder runtimeWiringBuilder, ObjectTypeDefinition objectTypeDefinition,String query) {
+        runtimeWiringBuilder.type(objectTypeDefinition.getName(), typeWiring -> {
+            objectTypeDefinition.getFieldDefinitions().forEach(fieldDefinition -> {
+                DataFetcher<?> dataFetcher = new ArangoDataMutation<>(arangoDatabase, extractCollectionName(fieldDefinition), graphQLValidator,query);
+                typeWiring.dataFetcher(fieldDefinition.getName(), dataFetcher);
+            });
+            return typeWiring;
+        });
+    }
+
     private String extractCollectionName(FieldDefinition fieldDefinition) {
-        if (fieldDefinition.getType() instanceof ListType) {
-            ListType fieldType = (ListType) fieldDefinition.getType();
-            TypeName type = (TypeName) fieldType.getType();
-            return type.getName().toLowerCase();
-        } else {
-            TypeName type = (TypeName) fieldDefinition.getType();
-            return type.getName().toLowerCase();
-        }
+        TypeName type = fieldDefinition.getType() instanceof ListType
+                ? (TypeName) ((ListType) fieldDefinition.getType()).getType()
+                : (TypeName) fieldDefinition.getType();
+        return type.getName().toLowerCase();
     }
 
 }

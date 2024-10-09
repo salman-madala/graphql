@@ -1,4 +1,4 @@
-package com.altair.graphql.component;
+package com.altair.graphql.util;
 
 import graphql.GraphQL;
 import graphql.schema.*;

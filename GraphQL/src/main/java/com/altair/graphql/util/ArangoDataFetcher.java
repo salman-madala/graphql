@@ -1,4 +1,4 @@
-package com.altair.graphql.component;
+package com.altair.graphql.util;
 
 import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
