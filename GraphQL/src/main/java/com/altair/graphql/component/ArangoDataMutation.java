@@ -44,10 +44,10 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
         String fieldName = environment.getFieldDefinition().getName();
         try {
             if (fieldName.toLowerCase().contains("node")) {
-                BaseDocument node = new BaseDocument();
+
                 Map<String, Object> input = environment.getArgument("input");
                 String type = (String) input.get("type");
-                Map<String, Object> nodeData = environment.getArgument("nodeData");
+                Map<String, Object> nodeData = (Map<String, Object>) input.get("nodeData");
                 String schemaFilePath = (String) input.get("schema_file");
 
                 GraphQLSchema schema = GraphQLUtil.loadSchema(schemaFilePath);
@@ -59,6 +59,8 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
                         if (!arangoDatabase.collection(type).exists()) {
                             arangoDatabase.createCollection(type);
                         }
+                        BaseDocument node = new BaseDocument();
+                        node.addAttribute("nodeData", nodeData);
                         DocumentCreateEntity response = arangoDatabase.collection(type).insertDocument(node);
 
                         Map<String, Object> result = new HashMap<>();
@@ -115,7 +117,10 @@ public class ArangoDataMutation<T> implements DataFetcher<T> {
 
             GraphEntity graph = arangoDatabase.createGraph(graphName, Collections.singletonList(edgeDefinition), new GraphCreateOptions());
             System.out.println("Graph " + graph.getName() + " created successfully.");
-            return (T) ("Graph " + graph.getName() + " created successfully.");
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("message","Graph " + graph.getName() + " is created successfully.");
+            return (T) result;
         } catch (Exception e) {
             System.out.println(e);
         }

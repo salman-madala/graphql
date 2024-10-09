@@ -1,10 +1,6 @@
 type Book{
-    name:String!
+    title:String!
     description:String!
     price:String!
-    author:Author!
-}
-type Author{
-    name:String!
-    phoneNumber:Int!
+    edition:Int
 }

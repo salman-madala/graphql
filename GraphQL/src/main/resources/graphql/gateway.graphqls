@@ -2,7 +2,6 @@ scalar JSON
 
 type Node {
     _id: ID!
-    type: String
     nodeData:JSON
 }
 
@@ -27,6 +26,10 @@ type Res {
     allResults:JSON
 }
 
+type ResponseMessage{
+    message:String!
+}
+
 type Query {
     getNode(id: ID!,type:String): Node
     getNodes(type:String): [Node]
@@ -38,5 +41,5 @@ type Query {
 type Mutation {
     createNode(input:NodeInput): Node
     createEdge(from: String!, to: String!, label: String!): Edge
-    createGraph(graphName:String!,edgeDefinition:String!,fromCollections:String!,toCollections:String!):Node
+    createGraph(graphName:String!,edgeDefinition:String!,fromCollections:String!,toCollections:String!):ResponseMessage
 }

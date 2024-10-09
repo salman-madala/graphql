@@ -80,8 +80,6 @@ public class ArangoDataFetcher<T> implements DataFetcher<T> {
 
     private T search(DataFetchingEnvironment environment) {
         try {
-
-
             String analyzer = environment.getArgument("analyzer");
             String collectionName = environment.getArgument("collectionName");
             String searchVal = environment.getArgument("searchVal");
